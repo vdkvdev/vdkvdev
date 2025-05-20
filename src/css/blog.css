@@ -1,0 +1,61 @@
+.blog {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  margin: 40px 0px;
+  width: 600px;
+}
+
+.blog h2 {
+  color: #d1d1d1;
+  font-weight: normal;
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.blog .blog_content {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.blog .card {
+  text-decoration: none;
+  cursor: pointer;
+  width: 100%;
+  font-family: "ubuntu-mono", monospace;
+  color: #999999;
+  font-size: 17px;
+  background-color: transparent;
+  border: 1px solid #272729;
+  border-radius: 4px;
+  padding: 10px;
+  transition: 0.2s;
+}
+
+.blog .card img {
+  width: 100%;
+}
+
+.blog .card .info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 5px 0px;
+}
+
+.blog .card .title {
+  color: #d1d1d1;
+  font-size: 20px;
+  margin: 10px 0px  stave5px 0px;
+  font-weight: bold;
+  text-align: left;
+}
+
+.blog .card .description {
+  text-align: left;
+}
+
+.blog .card:hover {
+  background-color: #18181c;
+}

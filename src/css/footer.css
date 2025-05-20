@@ -1,0 +1,27 @@
+.footer {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  margin: 40px 0px;
+  width: 600px;
+}
+
+.footer footer {
+  border-top: 1px solid #272729;
+  padding-top: 10px;
+  margin-bottom: 15px;
+}
+
+.footer footer p {
+  text-align: center;
+  color: #d1d1d1;
+  font-weight: normal;
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.footer footer span {
+  display: inline-block;
+  transform: scaleX(-1);
+  font-size: 25px;
+}

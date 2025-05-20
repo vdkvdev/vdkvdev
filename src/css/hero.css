@@ -1,0 +1,56 @@
+.hero {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  margin: 40px 0px;
+  height: 240px;
+  width: 600px;
+}
+
+.hero img {
+  width: 40px;
+  border-radius: 5px;
+}
+
+.hero .name h1 {
+  color: #d1d1d1;
+  font-size: 35px;
+  font-weight: normal;
+  min-height: 42px;
+}
+
+.hero .name p {
+  margin-top: 5px;
+  color: #999999;
+  font-size: 18px;
+}
+
+.hero p {
+  width: 100%;
+  color: #999999;
+  line-height: 24px;
+  font-size: 17px;
+}
+
+.hero p span {
+  background-color: rgba(152, 170, 189, 0.08);
+  border-radius: 5px;
+  padding: 2px 5px;
+}
+
+.hero .avalibre {
+  display: flex;
+  justify-content: space-between;
+  align-content: center;
+}
+
+.hero .avalibre p {
+  display: flex;
+  align-content: center;
+  width: auto;
+}
+
+.hero .avalibre p img {
+  width: 20px;
+  margin-right: 10px;
+}
