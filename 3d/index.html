@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@vdkvdev</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; z-index: 1000;">
+        <button id="closeBtn">Click me!</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <!-- Importar GLTFLoader -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+    <!-- Importar OrbitControls -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // Variables para cambios de fondo
+        let backgroundColor = false; // false = negro, true = blanco
+        let lastChange = 0;
+        var mixer = null;
+
+        // Variable para controlar si ha iniciado la experiencia
+        let started = false;
+
+        // Cargar y preparar audio en background (loop infinito)
+        const audio = new Audio('mp3.mp3'); // Cambia 'audio.mp3' por la ruta de tu archivo MP3
+        audio.loop = true;
+        audio.preload = 'auto'; // Carga el audio en background al entrar a la página
+        audio.volume = 1; // Ajusta el volumen si quieres (0.0 a 1.0)
+
+        // Configurar escena, cámara y renderizador
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000); // Inicializar color de fondo
+        document.body.appendChild(renderer.domElement);
+
+        // Añadir luz ambiental
+        const ambientLight = new THREE.AmbientLight(0x404040, 2);
+        scene.add(ambientLight);
+
+        // Añadir luz direccional
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+
+        // Configurar controles de órbita
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; // Suaviza el movimiento
+        controls.dampingFactor = 0.05;
+        controls.screenSpacePanning = false;
+        // Rotación limitada a horizontal
+        controls.target.set(0, 0, 0);
+        // Deshabilitar movimiento lateral de la cámara
+        controls.enablePan = false;
+        // Limitar rotación solo a horizontal
+        controls.minPolarAngle = Math.PI / 2;
+        controls.maxPolarAngle = Math.PI / 2;
+
+        // Cargar modelo GLB en background
+        const loader = new THREE.GLTFLoader();
+        loader.load(
+            'glb.glb', // Ruta del modelo .glb
+            (gltf) => {
+                const model = gltf.scene;
+                scene.add(model);
+
+                // Centrar y escalar el modelo si es necesario
+                const box = new THREE.Box3().setFromObject(model);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const scale = 2 / maxDim; // Escala para que el modelo ocupe un tamaño razonable
+                model.scale.set(scale, scale, scale);
+                model.position.sub(center.multiplyScalar(scale)); // Centrar el modelo
+
+                // Configurar animaciones si existen
+                if (gltf.animations.length > 0) {
+                    mixer = new THREE.AnimationMixer(model);
+                    gltf.animations.forEach((clip) => {
+                        const action = mixer.clipAction(clip);
+                        action.play();
+                    });
+                }
+
+                // Ajustar la cámara para que el modelo sea visible
+                camera.position.set(0, 0, maxDim * scale * 0.5);
+                camera.lookAt(0, 0, 0);
+
+                // Ajustar límites de zoom basados en el tamaño del modelo
+                controls.minDistance = maxDim * scale * 0.5;
+                controls.maxDistance = maxDim * scale * 3;
+            },
+            (xhr) => {
+                console.log((xhr.loaded / xhr.total * 100) + '% cargado');
+            },
+            (error) => {
+                console.error('Error al cargar el modelo:', error);
+            }
+        );
+
+        // Manejar modal
+        const modal = document.getElementById('modal');
+        const closeBtn = document.getElementById('closeBtn');
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            // Iniciar reproducción de audio en loop
+            audio.play().catch(error => console.error('Error al reproducir audio:', error));
+            // Iniciar la experiencia Three.js
+            started = true;
+            // Iniciar vibración cada 100ms (si quieres mantenerla)
+            setInterval(() => {
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+            }, 100);
+        });
+
+        // Manejar redimensionamiento de ventana
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Variables para el tiempo de animación
+        let previousTime = 0;
+
+        // Bucle de animación (PAUSADO hasta que se haga click)
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Si no ha iniciado, no renderizar nada
+            if (!started) {
+                return;
+            }
+
+            // Calcular deltaTime para animaciones
+            const currentTime = performance.now() * 0.001; // Convertir a segundos
+            const deltaTime = currentTime - previousTime;
+            previousTime = currentTime;
+
+            // Actualizar mixer si existe
+            if (mixer) {
+                mixer.update(deltaTime);
+            }
+
+            controls.update(); // Actualizar controles
+
+            // Cambiar fondo cada 100ms
+            const now = performance.now();
+            if (now - lastChange > 100) {
+                backgroundColor = !backgroundColor;
+                renderer.setClearColor(backgroundColor ? 0xffffff : 0x000000);
+                lastChange = now;
+            }
+
+            renderer.render(scene, camera);
+        }
+        animate(); // Inicia el bucle, pero pausado hasta el click
+    </script>
+</body>
+</html>
